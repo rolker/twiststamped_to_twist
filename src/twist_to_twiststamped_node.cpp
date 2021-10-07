@@ -8,29 +8,28 @@
 #include "geometry_msgs/TwistStamped.h"
 
 ros::Publisher pub;
-
+std::string frame_id;
 
 void twistCallback(const geometry_msgs::Twist::ConstPtr& inmsg)
 {
     geometry_msgs::TwistStamped outmsg;
     outmsg.header.stamp = ros::Time::now();
-    outmsg.twist.angular.x = inmsg->angular.x;
-    outmsg.twist.angular.y = inmsg->angular.y;
-    outmsg.twist.angular.z = inmsg->angular.z;
-    outmsg.twist.linear.x = inmsg->linear.x;
-    outmsg.twist.linear.y = inmsg->linear.y;
-    outmsg.twist.linear.z = inmsg->linear.z;
+    outmsg.header.frame_id = frame_id;
+    outmsg.twist = *inmsg;
     pub.publish(outmsg);
 }
 
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "twist_to_twiststamped");
+
+    ros::param::param<std::string>("~frame_id", frame_id, "base_link");
+
     ros::NodeHandle n;
     
-    pub = n.advertise<geometry_msgs::TwistStamped>("/output",10);
+    pub = n.advertise<geometry_msgs::TwistStamped>("output",10);
 
-    ros::Subscriber sub = n.subscribe("/input",10,twistCallback);
+    ros::Subscriber sub = n.subscribe("input",10,twistCallback);
     
     ros::spin();
     
